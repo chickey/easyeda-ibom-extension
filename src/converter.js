@@ -37,25 +37,26 @@ const parseFootprintValue = (footprint) => {
   return parseFootprintSpecialLabel(footprint,'N');
 };
 
-const parseFootprintPackage = (footprint) => {
+// c_para is a backtick separated list of key/value pairs: "package`R0603`Supplier Part`C25804`..."
+const parseFootprintParams = (footprint) => {
   if(!footprint.head.c_para) {
-    return "unknown";
+    return {};
   }
 
   const chunks = _.chunk(footprint.head.c_para.split('`'),2);
+  return _.fromPairs(_.filter(chunks,chunk => chunk.length === 2));
+};
 
-  const packageChunk = _.find(chunks,(chunk) => {
-    return chunk.length === 2 && chunk[0] === 'package';
-  });
-
-  return packageChunk[1];
+const parseFootprintPackage = (footprint) => {
+  return parseFootprintParams(footprint).package || "unknown";
 };
 
 const parseFootprintInfo = (footprint) => {
   return {
     ref: parseFootprintRef(footprint),
     value: parseFootprintValue(footprint),
-    package: parseFootprintPackage(footprint)
+    package: parseFootprintPackage(footprint),
+    params: parseFootprintParams(footprint)
   }
 };
 
@@ -521,21 +522,11 @@ const parseFootprints = (data) => {
 
 const parseBom = (data, easyBom) => {
   const customColumns = [
-    "BOM_Manufacturer",
-    "BOM_Manufacturer Part",
-    "BOM_Supplier",
-    "BOM_Supplier Part"
+    "Manufacturer",
+    "Manufacturer Part",
+    "Supplier",
+    "Supplier Part"
   ];
-
-  const buildCustomValuesList = (custom) => {
-    return _.map(customColumns,(column) => {
-      const value = custom[column];
-      if(_.isEmpty(value)) {        
-        return " ";
-      }
-      return value;
-    });
-  };
 
   const fetchEasyBOMRowCustomParams = (value, pkg) => {
     const row = _.find(easyBom,{ value, package: pkg });
@@ -543,49 +534,53 @@ const parseBom = (data, easyBom) => {
       return {};
     }
 
-    return row.customPara;
+    return row.customPara || {};
+  };
+
+  // Footprint attributes come first, EasyEDA BOM export is a fallback. Both may use a "BOM_" prefix.
+  const lookupCustomValue = (column, params, easyBomParams) => {
+    const candidates = [
+      params[column],
+      params[`BOM_${column}`],
+      easyBomParams[column],
+      easyBomParams[`BOM_${column}`]
+    ];
+    const value = _.find(candidates,candidate => _.isString(candidate) && !_.isEmpty(_.trim(candidate)));
+    return value ? _.trim(value) : "";
   };
 
   const footprintsMetadata = _.map(_.values(data.FOOTPRINT),(footprint,index) => {
     const info = parseFootprintInfo(footprint);
+    const easyBomParams = fetchEasyBOMRowCustomParams(info.value,info.package);
     return {
       ...info,
+      custom: _.map(customColumns,column => lookupCustomValue(column,info.params,easyBomParams)),
       id: index,
-      layer: footprint.head.layerid === LayerType.Top ? 'F' : 'B'      
+      layer: footprint.head.layerid === LayerType.Top ? 'F' : 'B'
     };
   });
 
+  const customColumnIndexesContainingData = _.filter(_.range(customColumns.length),(index) => {
+    return _.some(footprintsMetadata,meta => !_.isEmpty(meta.custom[index]));
+  });
+
   const buildRows = (footprintsMetadata, layers) => {
-    const both = _.groupBy(_.filter(footprintsMetadata, meta => _.includes(layers,meta.layer)),obj => `${obj.value}+${obj.meta}`);    
+    const groupKey = obj => JSON.stringify([obj.value,obj.package,obj.custom]);
+    const both = _.groupBy(_.filter(footprintsMetadata, meta => _.includes(layers,meta.layer)),groupKey);
     return _.map(both,(footprints) => {
-      const value = footprints[0].value; // FIXME: Need a guard here!
-      const pkg = footprints[0].package; // FIXME: Need a guard here!
+      const { value, package: pkg, custom } = footprints[0];
       return [footprints.length, value, pkg,_.map(footprints,(fpt) => {
         return [fpt.ref,fpt.id];
-      }),buildCustomValuesList(fetchEasyBOMRowCustomParams(value,pkg))];
+      }),_.map(customColumnIndexesContainingData,index => custom[index] || " ")];
     });
   };
 
-  const rows = buildRows(footprintsMetadata,['F','B']);  
-  const customColumnsContainingData = _.compact(_.map(customColumns,(column, index) => {
-    const columnHasData = _.some(rows,(row) => {
-      const values = _.last(row);
-      if(_.isArray(values) && values.length === customColumns.length) {
-        return !_.isEmpty(values[index]) && values[index] !== " ";
-      }
-
-      return false;
-    });
-
-    return columnHasData ? column : null;    
-  }));
-
   return {
-    both: rows,
+    both: buildRows(footprintsMetadata,['F','B']),
     F:  buildRows(footprintsMetadata,['F']),
     B:  buildRows(footprintsMetadata,['B']),
     skipped: [],
-    customColumns: customColumnsContainingData    
+    customColumns: _.map(customColumnIndexesContainingData,index => customColumns[index])
   };
 };
 
