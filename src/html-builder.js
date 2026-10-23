@@ -36,6 +36,7 @@ export const buildIBomHTML = (source, meta, bom) => {
     "redraw_on_drag": true,
     "highlight_pin1": false,
     "extra_fields": [],
+    "hidden_columns": [],
     "dark_mode": false,
     "bom_view": "left-right",
     "board_rotation": 0.0,
