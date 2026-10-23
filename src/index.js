@@ -70,7 +70,7 @@ registerCommand('generateAndDownload', () => {
 });
 
 registerCommand('visitGithubPage', () => {
-  window.open('https://github.com/turbobabr/easyeda-ibom-extension', '_blank');  
+  window.open('https://github.com/chickey/easyeda-ibom-extension', '_blank');  
 });
 
 if(!isRunnerAround()) {
