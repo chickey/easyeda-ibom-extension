@@ -381,14 +381,16 @@ function populateBomHeader() {
         th, th.onclick.bind(th), checkboxSetUnsetAllHandler(checkbox));
       tr.appendChild(th);
     }
-    tr.appendChild(createColumnHeader("References", "References", (a, b) => {
-      var i = 0;
-      while (i < a[3].length && i < b[3].length) {
-        if (a[3][i] != b[3][i]) return a[3][i] > b[3][i] ? 1 : -1;
-        i++;
-      }
-      return a[3].length - b[3].length;
-    }));
+    if (isBomColumnVisible("References")) {
+      tr.appendChild(createColumnHeader("References", "References", (a, b) => {
+        var i = 0;
+        while (i < a[3].length && i < b[3].length) {
+          if (a[3][i] != b[3][i]) return a[3][i] > b[3][i] ? 1 : -1;
+          i++;
+        }
+        return a[3].length - b[3].length;
+      }));
+    }
     // Extra fields
     if (config.extra_fields.length > 0) {
       var extraFieldCompareClosure = function(fieldIndex) {
@@ -400,18 +402,23 @@ function populateBomHeader() {
         }
       }
       for (var i in config.extra_fields) {
+        if (!isBomColumnVisible(config.extra_fields[i])) continue;
         tr.appendChild(createColumnHeader(
           config.extra_fields[i], "extra", extraFieldCompareClosure(i)));
       }
     }
-    tr.appendChild(createColumnHeader("Value", "Value", (a, b) => {
-      return valueCompare(a[5], b[5], a[1], b[1]);
-    }));
-    tr.appendChild(createColumnHeader("Footprint", "Footprint", (a, b) => {
-      if (a[2] != b[2]) return a[2] > b[2] ? 1 : -1;
-      else return 0;
-    }));
-    if (settings.bommode == "grouped") {
+    if (isBomColumnVisible("Value")) {
+      tr.appendChild(createColumnHeader("Value", "Value", (a, b) => {
+        return valueCompare(a[5], b[5], a[1], b[1]);
+      }));
+    }
+    if (isBomColumnVisible("Footprint")) {
+      tr.appendChild(createColumnHeader("Footprint", "Footprint", (a, b) => {
+        if (a[2] != b[2]) return a[2] > b[2] ? 1 : -1;
+        else return 0;
+      }));
+    }
+    if (settings.bommode == "grouped" && isBomColumnVisible("Quantity")) {
       tr.appendChild(createColumnHeader("Quantity", "Quantity", (a, b) => {
         return a[3].length - b[3].length;
       }));
@@ -500,24 +507,31 @@ function populateBomBody() {
         }
       }
       // References
-      td = document.createElement("TD");
-      td.innerHTML = highlightFilter(references.map(r => r[0]).join(", "));
-      tr.appendChild(td);
+      if (isBomColumnVisible("References")) {
+        td = document.createElement("TD");
+        td.innerHTML = highlightFilter(references.map(r => r[0]).join(", "));
+        tr.appendChild(td);
+      }
       // Extra fields
       for (var i in config.extra_fields) {
+        if (!isBomColumnVisible(config.extra_fields[i])) continue;
         td = document.createElement("TD");
         td.innerHTML = highlightFilter(bomentry[4][i]);
         tr.appendChild(td);
       }
       // Value
-      td = document.createElement("TD");
-      td.innerHTML = highlightFilter(bomentry[1]);
-      tr.appendChild(td);
+      if (isBomColumnVisible("Value")) {
+        td = document.createElement("TD");
+        td.innerHTML = highlightFilter(bomentry[1]);
+        tr.appendChild(td);
+      }
       // Footprint
-      td = document.createElement("TD");
-      td.innerHTML = highlightFilter(bomentry[2]);
-      tr.appendChild(td);
-      if (settings.bommode == "grouped") {
+      if (isBomColumnVisible("Footprint")) {
+        td = document.createElement("TD");
+        td.innerHTML = highlightFilter(bomentry[2]);
+        tr.appendChild(td);
+      }
+      if (settings.bommode == "grouped" && isBomColumnVisible("Quantity")) {
         // Quantity
         td = document.createElement("TD");
         td.textContent = bomentry[3].length;
@@ -848,6 +862,51 @@ function setBomCheckboxes(value) {
   prepCheckboxes();
   populateBomTable();
   populateDarkenWhenCheckedOptions();
+}
+
+function getToggleableBomColumns() {
+  return ["References"].concat(config.extra_fields, ["Value", "Footprint", "Quantity"]);
+}
+
+function isBomColumnVisible(name) {
+  return !settings.hiddenBomColumns.includes(name);
+}
+
+function setBomColumnVisible(name, visible) {
+  settings.hiddenBomColumns = settings.hiddenBomColumns.filter((e) => e != name);
+  if (!visible) {
+    settings.hiddenBomColumns.push(name);
+  }
+  writeStorage("hiddenBomColumns", JSON.stringify(settings.hiddenBomColumns));
+  populateBomTable();
+}
+
+function populateBomColumnsOptions() {
+  var container = document.getElementById("bomColumnsContainer");
+  container.innerHTML = '';
+
+  for (var column of getToggleableBomColumns()) {
+    var id = "bomColumn-" + column;
+
+    var div = document.createElement("div");
+    div.classList.add("radio-container");
+
+    var input = document.createElement("input");
+    input.type = "checkbox";
+    input.id = id;
+    input.checked = isBomColumnVisible(column);
+    input.onchange = ((name) => function() {
+      setBomColumnVisible(name, this.checked);
+    })(column);
+    div.appendChild(input);
+
+    var label = document.createElement("label");
+    label.textContent = column;
+    label.htmlFor = id;
+    div.appendChild(label);
+
+    container.appendChild(div);
+  }
 }
 
 function setDarkenWhenChecked(value) {

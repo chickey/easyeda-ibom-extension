@@ -493,6 +493,7 @@ var settings = {
   bommode: "grouped",
   checkboxes: [],
   checkboxStoredRefs: {},
+  hiddenBomColumns: [],
   darkMode: false,
   highlightpin1: false,
   redrawOnDrag: true,
@@ -535,6 +536,17 @@ function initDefaults() {
 
   settings.darkenWhenChecked = readStorage("darkenWhenChecked") || "";
   populateDarkenWhenCheckedOptions();
+
+  settings.hiddenBomColumns = config.hidden_columns || [];
+  var hiddenBomColumns = readStorage("hiddenBomColumns");
+  if (hiddenBomColumns !== null) {
+    try {
+      settings.hiddenBomColumns = JSON.parse(hiddenBomColumns);
+    } catch (e) {
+      // Keep defaults
+    }
+  }
+  populateBomColumnsOptions();
 
   function initBooleanSetting(storageString, def, elementId, func) {    
     var b = readStorage(storageString);
