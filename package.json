@@ -1,6 +1,6 @@
 {
   "name": "easyeda-ibom-extension",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "",
   "scripts": {
     "build": "webpack --mode production",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/turbobabr/easyeda-ibom-extension.git"
+    "url": "git+https://github.com/chickey/easyeda-ibom-extension.git"
   },
   "author": "Andrey Shakhmin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/turbobabr/easyeda-ibom-extension/issues"
+    "url": "https://github.com/chickey/easyeda-ibom-extension/issues"
   },
-  "homepage": "https://github.com/turbobabr/easyeda-ibom-extension#readme",
+  "homepage": "https://github.com/chickey/easyeda-ibom-extension#readme",
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
@@ -57,8 +57,8 @@
     "name": "iBom",
     "id": "ibom",
     "description": "Embedded Interactive HTML BOM for EasyEDA",
-    "homepage": "https://github.com/turbobabr/easyeda-ibom-extension#readme",
-    "username": "turbobabr",
+    "homepage": "https://github.com/chickey/easyeda-ibom-extension#readme",
+    "username": "chickey",
     "repo": "easyeda-ibom-extension"
   },
   "dependencies": {

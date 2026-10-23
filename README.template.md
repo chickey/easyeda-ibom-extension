@@ -13,6 +13,8 @@ Comparing to original solution, `iBom for EasyEDA` is available right within `Ea
 
 > NOTE: This extension is still in **ALPHA/BETA** stage - a lot of things should be done in order to make it fully compatible with `EasyEDA`. 
 
+> This is a fork of [turbobabr/easyeda-ibom-extension](https://github.com/turbobabr/easyeda-ibom-extension) that adds supplier part numbers to the BOM and lets you choose which BOM columns are shown.
+
 ## Installation
 
 1. Download [${downloadFileName}](${downloadUrl})
@@ -41,11 +43,42 @@ Just click `iBom -> Generate & Download HTML` menu item in order to get the stan
 
 > Note: In case the downloaded file doesn't have `.html` extension - just add it manually. It is some sort of weird browser behaviour for the case to be investigated.
 
+### Supplier and manufacturer part numbers
+
+If your parts have `Supplier Part` (e.g. an LCSC number like `C2887276`), `Supplier`, `Manufacturer` or `Manufacturer Part` attributes, they are shown as extra columns in the BOM. A column only appears when at least one part has a value for it. Parts with the same value and footprint but different part numbers get separate rows.
+
+You can type a part number into the `Filter` box to find it on the board.
+
+### Choosing which columns are shown
+
+Open the settings menu (the cog icon at the top right of the `iBom` view) and use the `Bom columns` checkboxes to show or hide `References`, `Value`, `Footprint`, `Quantity` and any supplier/manufacturer columns. Your choice is remembered per board in the browser. Hidden columns are still searched by the `Filter` box.
+
+The `Sourced`/`Placed` checkbox columns are set separately, in the `Bom checkboxes` box in the same menu.
+
+## Building
+
+The build tooling dates from 2021 and needs **Node 16** to build; `npm run build` fails on current Node versions. Install the dependencies with your normal `npm`, then let `npx` fetch Node 16 just for the build:
+
+```bash
+npm ci --ignore-scripts
+npx -y -p node@16 -- npm run build
+```
+
+`--ignore-scripts` skips the `postinstall` setup script, which fails on current `npm` and isn't needed.
+
+The built extension is written to `dist/`. Load the files from that folder as described in [Installation](#installation), starting from step 3.
+
+Other scripts:
+- `npm run build-docs` regenerates `README.md` from `README.template.md`. Edit the template, not `README.md`.
+- `npm run release` bumps the patch version, builds, regenerates the docs and packages a zip into `releases/` for a GitHub release.
+
 ## Feedback
 
-If you discover  any issue or have any suggestions for improvement of the plugin, please [open an issue](${issuesUrl}) or find me on twitter [@turbobabr](http://twitter.com/turbobabr).
+If you discover  any issue or have any suggestions for improvement of the plugin, please [open an issue](${issuesUrl}).
 
 ## Credits 
+
+This is a fork of [iBom for EasyEDA](https://github.com/turbobabr/easyeda-ibom-extension) by [Andrey Shakhmin](https://github.com/turbobabr).
 
 This solution uses:
 - [InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom) as a core component. 
