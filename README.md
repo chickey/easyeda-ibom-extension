@@ -62,7 +62,8 @@ Click the `3D` button next to `F`, `FB` and `B` to see the assembled board in 3D
 - Drag to rotate, scroll or pinch to zoom (towards the pointer), right-drag or two-finger drag to pan.
 - `Top`, `Angled` and `Bottom` jump to a fixed view.
 - The board surface shows the pads, tracks and silkscreen from the 2D view.
-- Parts without a 3D model in EasyEDA, or whose model could not be downloaded, are shown as grey boxes the size of their footprint.
+- If a footprint on the board has no 3D model stored with it (for example an older copy of a library footprint), its `Supplier Part` LCSC number is looked up in EasyEDA's library and the current library model is used instead. This only applies to top-side parts with the same package name, and a model that would land outside the footprint is rejected, as the library footprint may have changed since the board was made. Updating the footprint from the library in EasyEDA is the more reliable fix.
+- Parts without a 3D model, or whose model could not be found or downloaded, are shown as grey boxes the size of their footprint.
 
 The models are downloaded from EasyEDA while the iBom is generated, then stored inside the HTML file. The downloaded file therefore works offline and needs no server; it opens in any current version of Chrome, Edge, Firefox or Safari, on desktop or mobile. The 3D view adds roughly 0.6 MB for the viewer plus the compressed models (around 0.1-1 MB for a typical board).
 

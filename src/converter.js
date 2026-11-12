@@ -529,7 +529,22 @@ const parseFootprintModel3D = (footprint) => {
     return attrs.c_etype === 'outline3D' || (obj.layerid === LayerType.Model3D && attrs.uuid);
   });
   if(!node || !node.attrs.uuid) {
-    return null;
+    // No model stored with this footprint: the 3D builder can still look up
+    // the current library footprint by its LCSC part number.
+    const params = parseFootprintParams(footprint);
+    const lcsc = /\bC\d+\b/i.exec(params['Supplier Part'] || '');
+    if(!lcsc) {
+      return null;
+    }
+    return {
+      lookup: {
+        lcsc: lcsc[0].toUpperCase(),
+        package: params.package || '',
+        origin: [parseFloat(footprint.head.x), parseFloat(footprint.head.y)],
+        rotation: parseFloat(footprint.head.rotation) || 0,
+        layer: footprint.head.layerid
+      }
+    };
   }
 
   const { attrs } = node;

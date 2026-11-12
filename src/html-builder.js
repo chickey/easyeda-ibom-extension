@@ -2,13 +2,17 @@ import _ from 'lodash';
 import { convert } from './converter';
 import { fetchModels } from './model3d/fetch';
 import { encodeModels } from './model3d/pack';
+import { resolveLibraryModels } from './model3d/lookup';
 
 export const buildModels3D = (pcbdata, onProgress = () => {}) => {
-  const uuids = _.compact(_.map(pcbdata.models3d.placements, placement => placement && placement.uuid));
-  if (uuids.length === 0) {
-    return Promise.resolve(null);
-  }
+  onProgress('Looking up 3D models...');
+  return resolveLibraryModels(pcbdata.models3d.placements, pcbdata.footprints).then((placements) => {
+    const uuids = _.compact(_.map(placements, placement => placement && placement.uuid));
+    return uuids.length === 0 ? null : downloadModels(pcbdata, uuids, onProgress);
+  });
+};
 
+const downloadModels = (pcbdata, uuids, onProgress) => {
   return fetchModels(uuids, (done, total) => {
     onProgress(`Downloading 3D models ${done}/${total}...`);
   }).then(({ models, failed }) => {
