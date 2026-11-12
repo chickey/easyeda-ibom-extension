@@ -55,6 +55,20 @@ Open the settings menu (the cog icon at the top right of the `iBom` view) and us
 
 The `Sourced`/`Placed` checkbox columns are set separately, in the `Bom checkboxes` box in the same menu.
 
+### 3D view
+
+Click the `3D` button next to `F`, `FB` and `B` to see the assembled board in 3D, using the same 3D models EasyEDA shows in its own 3D view. Hover or click a BOM row to highlight where those parts go: the matching parts turn red and everything else fades out. Clicking a part on the 3D board selects its BOM row.
+
+- Drag to rotate, scroll or pinch to zoom (towards the pointer), right-drag or two-finger drag to pan.
+- `Top`, `Angled` and `Bottom` jump to a fixed view.
+- The board surface shows the pads, tracks and silkscreen from the 2D view.
+- If a footprint on the board has no 3D model stored with it (for example an older copy of a library footprint), its `Supplier Part` LCSC number is looked up in EasyEDA's library and the current library model is used instead. This only applies to top-side parts with the same package name, and a model that would land outside the footprint is rejected, as the library footprint may have changed since the board was made. Updating the footprint from the library in EasyEDA is the more reliable fix.
+- Parts without a 3D model, or whose model could not be found or downloaded, are shown as grey boxes the size of their footprint.
+
+The models are downloaded from EasyEDA while the iBom is generated, then stored inside the HTML file. The downloaded file therefore works offline and needs no server; it opens in any current version of Chrome, Edge, Firefox or Safari, on desktop or mobile. The 3D view adds roughly 0.6 MB for the viewer plus the compressed models (around 0.1-1 MB for a typical board).
+
+Use `iBom -> Generate & Download HTML (2D only)` for a smaller file without the 3D view.
+
 ## Building
 
 The build tooling dates from 2021 and needs **Node 16** to build; `npm run build` fails on current Node versions. Install the dependencies with your normal `npm`, then let `npx` fetch Node 16 just for the build:
@@ -66,7 +80,7 @@ npx -y -p node@16 -- npm run build
 
 `--ignore-scripts` skips the `postinstall` setup script, which fails on current `npm` and isn't needed.
 
-The built extension is written to `dist/`. Load the files from that folder as described in [Installation](#installation), starting from step 3.
+The built extension is written to `dist/`. Load all the files from that folder as described in [Installation](#installation), starting from step 3. `viewer3d.js` (the 3D viewer, built from `src/viewer3d/` with [three.js](https://threejs.org/)) must be included, or the 3D view is left out.
 
 Other scripts:
 - `npm run build-docs` regenerates `README.md` from `README.template.md`. Edit the template, not `README.md`.
@@ -84,6 +98,8 @@ This solution uses:
 - [InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom) as a core component. 
 - A `"hackable"` nature of `EasyEDA/LCEDA` - thank you guys for allowing us messing with the product! 👏
 - [svg-path-bbox](https://github.com/mondeja/svg-path-bbox) for calculating various bounding boxes during `EasyEDA` -> `InteractiveHTMLBOM` data conversions.
+- [three.js](https://threejs.org/) for the 3D view.
+- The 3D model placement rules (units, Y flip, height offsets and bottom-side flipping) follow those worked out and checked against EasyEDA in the `easyeda-step` project.
 
 ## License
 

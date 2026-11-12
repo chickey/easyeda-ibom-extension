@@ -21,6 +21,10 @@
           "title": "Generate & Download HTML",
           "command": "ibom.generateAndDownload"
         },
+        {
+          "title": "Generate & Download HTML (2D only)",
+          "command": "ibom.generateAndDownload2D"
+        },
         "-",
         {
           "title": "Visit Github Page",
@@ -42,6 +46,13 @@
         "category": ["iBom"],
         "description": "Generates a stand-alone iBom HTML representation",
         "command": "ibom.generateAndDownload"
+      },
+      {
+        "title": "Generate & Download iBom HTML (2D only)",
+        "scope": "pcb",
+        "category": ["iBom"],
+        "description": "Generates a stand-alone iBom HTML representation without the 3D view",
+        "command": "ibom.generateAndDownload2D"
       },
       {
         "title": "Visit iBom Github Page",

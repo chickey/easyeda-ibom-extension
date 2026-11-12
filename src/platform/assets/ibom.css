@@ -726,3 +726,82 @@ a {
 #frontcanvas, #backcanvas {
     touch-action: none;
 }
+
+#canvasdiv {
+  position: relative;
+}
+
+#canvas3d {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+#canvasdiv.mode-3d > #frontcanvas,
+#canvasdiv.mode-3d > #backcanvas,
+#canvasdiv.mode-3d > .gutter {
+  visibility: hidden;
+}
+
+#canvasdiv.mode-3d > #canvas3d {
+  display: block;
+}
+
+#canvas3d-view {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#canvas3d canvas {
+  cursor: grab;
+}
+
+#canvas3d canvas:active {
+  cursor: grabbing;
+}
+
+.view3d-buttons {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  font-size: 0;
+}
+
+.view3d-buttons button {
+  width: auto;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-right: 0;
+}
+
+.view3d-buttons button:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.view3d-buttons button:last-child {
+  border-right: 1px solid #888;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.dark .view3d-buttons {
+  filter: invert(1);
+}
+
+#canvas3d-status {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  pointer-events: none;
+}

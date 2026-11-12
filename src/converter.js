@@ -17,7 +17,8 @@ export const LayerType = {
   BoardOutline: "10",
   MultiLayer: "11",
   Document: "12",
-  Mechanical: "15"
+  Mechanical: "15",
+  Model3D: "19"
 };
 
 const parseFootprintSpecialLabel = (footprint, type) => {
@@ -520,6 +521,56 @@ const parseFootprints = (data) => {
 }
 
 
+// The footprint's 3D model is an SVGNODE on the 3D outline layer, e.g.
+// attrs: { uuid, c_origin: "4115,3127.5", z: "0", c_rotation: "0,0,180" }
+const parseFootprintModel3D = (footprint) => {
+  const node = _.find(_.values(footprint.SVGNODE), (obj) => {
+    const attrs = obj.attrs || {};
+    return attrs.c_etype === 'outline3D' || (obj.layerid === LayerType.Model3D && attrs.uuid);
+  });
+  if(!node || !node.attrs.uuid) {
+    // No model stored with this footprint: the 3D builder can still look up
+    // the current library footprint by its LCSC part number.
+    const params = parseFootprintParams(footprint);
+    const lcsc = /\bC\d+\b/i.exec(params['Supplier Part'] || '');
+    if(!lcsc) {
+      return null;
+    }
+    return {
+      lookup: {
+        lcsc: lcsc[0].toUpperCase(),
+        package: params.package || '',
+        origin: [parseFloat(footprint.head.x), parseFloat(footprint.head.y)],
+        rotation: parseFloat(footprint.head.rotation) || 0,
+        layer: footprint.head.layerid
+      }
+    };
+  }
+
+  const { attrs } = node;
+  const numbers = (value, count) => {
+    const parts = _.map(String(value || '').split(','), parseFloat);
+    return _.map(_.range(count), index => _.isFinite(parts[index]) ? parts[index] : 0);
+  };
+  const origin = numbers(attrs.c_origin, 2);
+
+  return {
+    uuid: attrs.uuid,
+    title: attrs.title || '',
+    origin: attrs.c_origin ? origin : [parseFloat(footprint.head.x), parseFloat(footprint.head.y)],
+    z: parseFloat(attrs.z) || 0,
+    rotation: numbers(attrs.c_rotation, 3),
+    size: [parseFloat(attrs.c_width) || 0, parseFloat(attrs.c_height) || 0]
+  };
+};
+
+const parseModels3D = (data) => {
+  return {
+    placements: _.map(_.values(data.FOOTPRINT), parseFootprintModel3D),
+    models: []
+  };
+};
+
 const parseBom = (data, easyBom) => {
   const customColumns = [
     "Manufacturer",
@@ -617,5 +668,6 @@ export const convert = (source, meta, easyBom) => {
     pads: parsePads(source) || [],
     nets: parseNets(source),
     bom: parseBom(source, easyBom),
+    models3d: parseModels3D(source),
   };
 };

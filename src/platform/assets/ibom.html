@@ -31,6 +31,14 @@
 ///////////////////////////////////////////////
 
 ///////////////////////////////////////////////
+///MODELS3D///
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+///VIEWER3DJS///
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
 ///UTILJS///
 ///////////////////////////////////////////////
 
@@ -146,6 +154,9 @@
         </button>
         <button id="bl-btn" class="right-most-button" onclick="changeCanvasLayout('B')"
                 title="Back only">B
+        </button>
+        <button id="3d-btn" class="right-most-button" onclick="changeCanvasLayout('3D')"
+                title="3D view" style="display: none">3D
         </button>
       </div>
       <div class="button-container hideonprint"
@@ -301,6 +312,15 @@
           <canvas id="B_slk" style="position: absolute; left: 0; top: 0; z-index: 2;"></canvas>
           <canvas id="B_hl" style="position: absolute; left: 0; top: 0; z-index: 3;"></canvas>
         </div>
+      </div>
+      <div id="canvas3d" touch-action="none">
+        <div id="canvas3d-view"></div>
+        <div class="view3d-buttons hideonprint">
+          <button onclick="set3DView('top')" title="View from the top">Top</button><!--
+       --><button onclick="set3DView('iso')" title="Angled view">Angled</button><!--
+       --><button onclick="set3DView('bottom')" title="View from the bottom">Bottom</button>
+        </div>
+        <div id="canvas3d-status"></div>
       </div>
     </div>
   </div>

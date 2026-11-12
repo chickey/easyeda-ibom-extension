@@ -16,6 +16,7 @@ const Config = {
   manifest: './src/platform/manifest.json',
   platformAssets: './src/platform/assets',  
   mainJS: './build/main.js',
+  viewer3dJS: './build/viewer3d.js',
   copyAsIs: [
     './src/platform/icon.svg',
     './src/platform/locale.txt'
@@ -47,6 +48,11 @@ const copyMain = () => {
     .pipe(gulp.dest(Config.distDir));
 };
 
+const copyViewer3D = () => {
+  return gulp.src(Config.viewer3dJS, { allowEmpty: true })
+    .pipe(gulp.dest(Config.distDir));
+};
+
 const copyPlatformFiles = () => {
   return gulp.src(Config.copyAsIs)
     .pipe(gulp.dest(Config.distDir));
@@ -68,7 +74,7 @@ const buildReleaseArchive = () => {
 };
 
 const build = () => {
-  return gulp.series(cleanDist,copyManifest,copyMain,copyPlatformFiles,copyPlatformAssets);
+  return gulp.series(cleanDist,copyManifest,copyMain,copyViewer3D,copyPlatformFiles,copyPlatformAssets);
 };
 
 const release = (callback = () => {}) => {
@@ -77,7 +83,7 @@ const release = (callback = () => {}) => {
 
 const buildWithLiveReload = () => {
   return gulp.series(
-    gulp.series(cleanDist,copyManifest,copyMain,copyPlatformFiles,copyPlatformAssets),
+    gulp.series(cleanDist,copyManifest,copyMain,copyViewer3D,copyPlatformFiles,copyPlatformAssets),
     (callback) => {
       LiveReloadClient.ping((alive) => {
         if(!alive) {

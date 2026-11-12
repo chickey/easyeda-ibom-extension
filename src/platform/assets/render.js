@@ -637,6 +637,7 @@ function drawHighlightsOnLayer(canvasdict, clear = true) {
 function drawHighlights() {
   drawHighlightsOnLayer(allcanvas.front);
   drawHighlightsOnLayer(allcanvas.back);
+  update3DHighlights();
 }
 
 function drawBackground(canvasdict, clear = true) {
@@ -673,6 +674,74 @@ function drawBackground(canvasdict, clear = true) {
       canvasdict.transform.s * canvasdict.transform.zoom,
       edgeColor, polygonColor, textColor);
   }
+}
+
+// Colours for the 3D board surface: green solder mask, white silkscreen, gold pads.
+var BOARD_TEXTURE_MASK_COLOR = "#1d5a2e";
+var BOARD_TEXTURE_PALETTE = {
+  "--pcb-edge-color": "#1d5a2e",
+  "--pad-color": "#d1ac55",
+  "--pad-hole-color": "#111111",
+  "--pin1-outline-color": "#d1ac55",
+  "--silkscreen-edge-color": "#f4f4ef",
+  "--silkscreen-polygon-color": "#f4f4ef",
+  "--silkscreen-text-color": "#f4f4ef",
+  "--track-color": "#2b7a3f",
+  "--zone-color": "#246b37",
+};
+
+// Draws one board side (F or B) as seen from the front, covering
+// pcbdata.edges_bbox, for use as a texture by the 3D view.
+function renderBoardTexture(layer, maxSize) {
+  var bbox = pcbdata.edges_bbox;
+  var w = bbox.maxx - bbox.minx;
+  var h = bbox.maxy - bbox.miny;
+  var s = maxSize / Math.max(w, h);
+  var width = Math.max(1, Math.round(w * s));
+  var height = Math.max(1, Math.round(h * s));
+  var layerdict = {
+    transform: { x: -bbox.minx * s, y: -bbox.miny * s, s: s, panx: 0, pany: 0, zoom: 1 },
+    layer: layer,
+  };
+  for (var c of ["bg", "fab", "silk", "highlight"]) {
+    layerdict[c] = document.createElement("canvas");
+    layerdict[c].width = width;
+    layerdict[c].height = height;
+  }
+
+  var style = topmostdiv.style;
+  var savedStyle = {};
+  for (var name in BOARD_TEXTURE_PALETTE) {
+    savedStyle[name] = style.getPropertyValue(name);
+    style.setProperty(name, BOARD_TEXTURE_PALETTE[name]);
+  }
+  var savedRotation = settings.boardRotation;
+  settings.boardRotation = 0;
+  try {
+    for (var c of ["bg", "fab", "silk", "highlight"]) {
+      prepareCanvas(layerdict[c], false, layerdict.transform);
+    }
+    drawBackground(layerdict);
+  } finally {
+    settings.boardRotation = savedRotation;
+    for (var name in savedStyle) {
+      if (savedStyle[name]) {
+        style.setProperty(name, savedStyle[name]);
+      } else {
+        style.removeProperty(name);
+      }
+    }
+  }
+
+  var texture = document.createElement("canvas");
+  texture.width = width;
+  texture.height = height;
+  var ctx = texture.getContext("2d");
+  ctx.fillStyle = BOARD_TEXTURE_MASK_COLOR;
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(layerdict.bg, 0, 0);
+  ctx.drawImage(layerdict.silk, 0, 0);
+  return texture;
 }
 
 function prepareCanvas(canvas, flip, transform) {
