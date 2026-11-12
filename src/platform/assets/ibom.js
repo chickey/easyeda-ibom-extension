@@ -11,6 +11,7 @@ var highlightHandlers = [];
 var footprintIndexToHandler = {};
 var netsToHandler = {};
 var highlightedFootprints = [];
+var viewer3d = null;
 var highlightedOrphanPads = [];
 var highlightedNet = null;
 var lastClicked;
@@ -70,6 +71,9 @@ function setDarkMode(value) {
   }
   writeStorage("darkmode", value);
   settings.darkMode = value;
+  if (viewer3d) {
+    viewer3d.setDarkMode(value);
+  }
   redrawIfInitDone();
 }
 
@@ -443,11 +447,12 @@ function populateBomBody() {
       case 'F':
         bomtable = pcbdata.bom.F.slice();
         break;
-      case 'FB':
-        bomtable = pcbdata.bom.both.slice();
-        break;
       case 'B':
         bomtable = pcbdata.bom.B.slice();
+        break;
+      default:
+        // Front and back, and the 3D view
+        bomtable = pcbdata.bom.both.slice();
         break;
     }
     if (settings.bommode == "ungrouped") {
@@ -645,10 +650,53 @@ function updateRefLookup(input) {
   populateBomTable();
 }
 
+function has3DView() {
+  return typeof IBom3D !== "undefined" && "models3d" in pcbdata && IBom3D.isSupported();
+}
+
+function ensure3DViewer() {
+  if (viewer3d) {
+    return viewer3d;
+  }
+  var status = document.getElementById("canvas3d-status");
+  status.textContent = "Loading 3D models...";
+  viewer3d = IBom3D.create({
+    container: document.getElementById("canvas3d-view"),
+    pcbdata: pcbdata,
+    pcbmodels: typeof pcbmodels !== "undefined" ? pcbmodels : null,
+    darkMode: settings.darkMode,
+    renderTexture: renderBoardTexture,
+    onPick: (footprintIndex) => footprintsClicked([footprintIndex]),
+  });
+  viewer3d.ready.then(() => {
+    var boxes = viewer3d.placeholderCount;
+    status.textContent = boxes ? boxes + " part(s) without a 3D model are shown as grey boxes" : "";
+    viewer3d.highlight(highlightedFootprints);
+  });
+  return viewer3d;
+}
+
+function set3DView(view) {
+  if (viewer3d) {
+    viewer3d.setView(view);
+  }
+}
+
+function update3DHighlights() {
+  if (viewer3d) {
+    viewer3d.highlight(highlightedFootprints);
+  }
+}
+
 function changeCanvasLayout(layout) {
   document.getElementById("fl-btn").classList.remove("depressed");
   document.getElementById("fb-btn").classList.remove("depressed");
   document.getElementById("bl-btn").classList.remove("depressed");
+  document.getElementById("3d-btn").classList.remove("depressed");
+  if (layout == "3D" && !has3DView()) {
+    layout = "FB";
+  }
+  document.getElementById("canvasdiv").classList.toggle("mode-3d", layout == "3D");
   switch (layout) {
     case 'F':
       document.getElementById("fl-btn").classList.add("depressed");
@@ -662,6 +710,12 @@ function changeCanvasLayout(layout) {
         canvassplit.collapse(0);
       }
       break;
+    case '3D':
+      document.getElementById("3d-btn").classList.add("depressed");
+      if (settings.bomlayout != "bom-only") {
+        canvassplit.setSizes([50, 50]);
+      }
+      break;
     default:
       document.getElementById("fb-btn").classList.add("depressed");
       if (settings.bomlayout != "bom-only") {
@@ -671,6 +725,9 @@ function changeCanvasLayout(layout) {
   settings.canvaslayout = layout;
   writeStorage("canvaslayout", layout);
   resizeAll();
+  if (layout == "3D") {
+    ensure3DViewer().resize();
+  }
   changeBomMode(settings.bommode);
 }
 
@@ -1085,6 +1142,10 @@ window.onload = function(e) {
   }
   initDone = true;
   prepCheckboxes();
+  if (has3DView()) {
+    document.getElementById("bl-btn").className = "middle-button";
+    document.getElementById("3d-btn").style.display = "";
+  }
   // Triggers render
   changeBomLayout(settings.bomlayout);
 

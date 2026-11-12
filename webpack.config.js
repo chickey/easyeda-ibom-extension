@@ -2,7 +2,10 @@ const WatchExternalFilesPlugin = require('webpack-watch-files-plugin').default;
 const Tasks = require('./scripts/tasks');
 module.exports = env => {
   return {
-    entry: './src/index.js',
+    entry: {
+      main: './src/index.js',
+      viewer3d: './src/viewer3d/index.js'
+    },
     module: {
       rules: [{
           test: /\.(js)$/,
@@ -36,7 +39,7 @@ module.exports = env => {
     output: {
       path: __dirname + '/build',
       publicPath: '/',
-      filename: 'main.js'
+      filename: '[name].js'
     },
     plugins: [
       new WatchExternalFilesPlugin({

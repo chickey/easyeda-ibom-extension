@@ -32,6 +32,19 @@
       font-size: 16px;
     }
 
+    .status {
+      line-height: 40px;
+      position: absolute;
+      left: 265px;
+      right: 50px;
+      top: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      color: #BBBBBB;
+    }
+
     .close-button {
       position: absolute;      
       top: 0;
