@@ -4,7 +4,7 @@ export const MM_PER_UNIT = 0.254;
 export const BOARD_THICKNESS = 1.6;
 const DEG = Math.PI / 180;
 
-// EasyEDA models are XY-centred and sit on Z = 0 (easyeda-step's convention).
+// EasyEDA models are XY-centred and sit on Z = 0.
 export const normaliseMatrix = (model) => {
   return new THREE.Matrix4().makeTranslation(
     -(model.min[0] + model.max[0]) / 2,
@@ -13,7 +13,7 @@ export const normaliseMatrix = (model) => {
   );
 };
 
-// Model → footprint → side → board, as in easyeda-step's embedded placement:
+// Model → footprint → side → board, using the footprint's stored placement:
 // rotate about X (-rx) and Y (ry), flip bottom parts about X, rotate about Z,
 // then move to the board position. EasyEDA adds 180° to the Z rotation of
 // bottom models; the flip already supplies that, so it is removed.

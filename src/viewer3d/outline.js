@@ -1,6 +1,5 @@
 // Turns iBom's board edge drawings (EasyEDA canvas units) into closed loops.
-// Ported from easyeda-step's board builder: segments and arcs are tessellated
-// into polylines, then joined end to end into loops.
+// Segments and arcs are tessellated into polylines, then joined end to end into loops.
 
 const JOIN_TOLERANCE = 0.5; // canvas units (0.127 mm)
 const ARC_SEGMENT_ANGLE = Math.PI / 36;
