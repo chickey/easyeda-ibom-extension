@@ -99,7 +99,6 @@ This solution uses:
 - A `"hackable"` nature of `EasyEDA/LCEDA` - thank you guys for allowing us messing with the product! 👏
 - [svg-path-bbox](https://github.com/mondeja/svg-path-bbox) for calculating various bounding boxes during `EasyEDA` -> `InteractiveHTMLBOM` data conversions.
 - [three.js](https://threejs.org/) for the 3D view.
-- The 3D model placement rules (units, Y flip, height offsets and bottom-side flipping) follow those worked out and checked against EasyEDA in the `easyeda-step` project.
 
 ## License
 
